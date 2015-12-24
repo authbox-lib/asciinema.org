@@ -72,6 +72,14 @@ RUN git clone git://people.freedesktop.org/~dvdhrm/libtsm /tmp/libtsm && \
     sudo make install && \
     sudo ldconfig
 
+# Install the dependencies here
+RUN apt-get update && apt-get install -y \
+    # install postgres
+        postgresql \
+        libpq-dev \
+   # install redis
+        redis-server
+
 # install asciinema
 ADD . /app
 WORKDIR /app
@@ -89,15 +97,11 @@ RUN rbenv local $RUBY_VERSION && \
 VOLUME ["/app/config", "/app/log"]
 
 # 172.17.42.1 is the docker0 address
-ENV DATABASE_URL "postgresql://postgres:mypass@172.17.42.1/asciinema"
-ENV REDIS_URL "redis://172.17.42.1:6379"
+ENV DATABASE_URL "postgresql://postgres:postgres@localhost:5432/asciinema"
+ENV REDIS_URL "redis://localhost:6379"
 ENV RAILS_ENV "development"
+
 # when using Docker Toolbox/Virtualbox this is going to be your address
 # set to whatever FQDN/address you want asciinema to advertise itself as
 # for ex. asciinema.example.com
 ENV HOST "192.168.99.100:3000"
-
-ENTRYPOINT ["rbenv", "exec"]
-CMD ["bundle", "exec", "rails", "server"]
-# bundle exec rake db:setup
-# budnle exec sidekiq  OR ruby start_sidekiq.rb (to start sidekiq with sendmail)
